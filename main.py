@@ -29,7 +29,7 @@ def main():
     print("TRAINING TOPIC MODEL")
     print("=" * 60)
     
-    cluster_nr = 5
+    cluster_nr = 4
     topic_model, topics, probs, embeddings = get_topic_modeling(df, cluster_nr)
     
     # Refine topic model and get final results
