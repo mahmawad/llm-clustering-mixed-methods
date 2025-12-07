@@ -30,14 +30,14 @@ CSV file → Duplicate Check → Clean DataFrame
 
 #### Dimensionality Reduction
 
-- **Algorithm**: UMAP (Uniform Manifold Approximation and Projection)
+- **Algorithm**: UMAP
 - **Parameters**: 15 neighbors, 5 components, cosine distance
 - **Purpose**: Reduce embedding dimensions for clustering and visualization
 
 #### Clustering
 
 - **Algorithm**: K-Means Clustering
-- **Approach**: Configurable cluster numbers (default: 8 clusters)
+- **Approach**: Configurable cluster numbers based on Data scale
 - **Robustness**: Outlier detection and reduction
 
 #### Topic Representation
@@ -117,11 +117,9 @@ llm-clustering-mixed-methods/
 
 ### 🔄 In Progress / Future
 
-- [ ] Evaluation metrics (silhouette score, Davies-Bouldin index)
 - [ ] Comparison with predefined categories/gold standard
-- [ ] Scientific discourse on Mixed-Methods value
-- [ ] Export clustering results to CSV
-- [ ] Multi-language support (German/English)
+- [x] Export clustering results as xlsx file
+- [x] Multi-language support (German/English)
 
 ## 🚀 Usage
 
@@ -183,45 +181,6 @@ This project uses **BERTopic** for topic modeling.
 **License**: MIT License  
 **Project**: https://github.com/MaartenGr/BERTopic
 
-### Sentence-Transformers
-
-**Citation:**
-
-```
-@inproceedings{reimers2019sentence,
-  title={Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks},
-  author={Reimers, Nils and Gupta, Vikram},
-  booktitle={Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing},
-  year={2019}
-}
-```
-
-**License**: Apache License 2.0  
-**Project**: https://github.com/UKPLab/sentence-transformers
-
-### UMAP
-
-**Citation:**
-
-```
-@article{mcinnes2018umap,
-  title={UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction},
-  author={McInnes, Leland and Healy, John and Melville, James},
-  journal={arXiv preprint arXiv:1802.03426},
-  year={2018}
-}
-```
-
-**License**: BSD 3-Clause License  
-**Project**: https://github.com/lmcinnes/umap
-
-### OpenAI API
-
-Uses OpenAI's GPT-3.5-Turbo for topic label generation.
-
-**License**: See OpenAI Terms of Service  
-**Website**: https://openai.com
-
 ## 📖 Scientific Context: Mixed-Methods Research
 
 In Mixed-Methods studies, large volumes of open-ended text responses are frequently collected. Manual analysis is time-consuming and error-prone. This project demonstrates how modern AI models (LLMs + embeddings) can automatically:
@@ -246,10 +205,6 @@ In Mixed-Methods studies, large volumes of open-ended text responses are frequen
 ⚠️ Quality depends on LLM model selection  
 ⚠️ May lose nuanced context in large-scale clustering  
 ⚠️ Requires careful prompt engineering for topic labels
-
-## 📧 Contact & Support
-
-For issues or contributions, please open an issue on the project repository.
 
 ---
 

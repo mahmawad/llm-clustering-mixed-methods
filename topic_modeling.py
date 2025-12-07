@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from bertopic import BERTopic
 import torch
 import toml
+import pandas as pd
 from pathlib import Path
 
 # Force CPU usage
@@ -110,3 +111,66 @@ def visualize_topics(topic_model, docs, reduced_embeddings=None, output_file="ou
     fig.write_html(output_file)
     print(f"Visualization saved to {output_file}")
     return fig
+
+
+def export_document_topics(topic_model, df, topics, topic_freq, output_file="out-2/document_topics.xlsx"):
+    """
+    Export document topic assignments to Excel file.
+
+    Args:
+        topic_model: The trained BERTopic model.
+        df (pd.DataFrame): Original DataFrame with document data.
+        topics: Topic assignments for each document.
+        topic_freq (pd.DataFrame): Topic frequency information.
+        output_file: Path to save the Excel file.
+
+    Returns:
+        pd.DataFrame: DataFrame with documents, topics, and cluster info.
+    """
+    # Get document info including representations
+    doc_info = topic_model.get_document_info(df['Prompt'].values)
+    
+    # Create result dataframe with document index and content
+    result_df = pd.DataFrame({
+        'Document': df['Prompt'].values,
+        'Topic': topics,
+    })
+    
+    # Add topic representation (label)
+    # Extract topic representation from the model
+    topic_names = {}
+    for topic_id in set(topics):
+        if topic_id == -1:
+            topic_names[topic_id] = "Outlier"
+        else:
+            try:
+                # Get the representation words for this topic
+                top_words = topic_model.get_topic(topic_id)
+                if top_words:
+                    words = [word[0] for word in top_words[:3]]
+                    topic_names[topic_id] = ", ".join(words)
+                else:
+                    topic_names[topic_id] = f"Topic_{topic_id}"
+            except:
+                topic_names[topic_id] = f"Topic_{topic_id}"
+    
+    result_df['Topic_Label'] = result_df['Topic'].map(topic_names)
+    
+    # Merge with topic frequency
+    result_df = result_df.merge(
+        topic_freq[['Topic', 'Count']].rename(columns={'Count': 'Cluster_Size'}),
+        on='Topic',
+        how='left'
+    )
+    
+    # Sort by topic ID
+    result_df = result_df.sort_values(by='Topic').reset_index(drop=True)
+    
+    # Reorder columns
+    result_df = result_df[['Document', 'Topic', 'Topic_Label', 'Cluster_Size']]
+    
+    # Save to Excel
+    result_df.to_excel(output_file, index=False, sheet_name='Topics')
+    print(f"Document topics exported to {output_file}")
+    
+    return result_df

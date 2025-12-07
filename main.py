@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from csv_utils import analyze_csv, remove_duplicates
-from topic_modeling import get_topic_modeling, get_final_tm, visualize_topics
+from topic_modeling import get_topic_modeling, get_final_tm, visualize_topics, export_document_topics
 
 
 def main():
@@ -50,12 +50,21 @@ def main():
     
     fig = visualize_topics(topic_model, docs, reduced_embeddings=None, output_file=str(output_file))
     
+    # Export document topics to Excel
+    print("\n" + "=" * 60)
+    print("EXPORTING RESULTS")
+    print("=" * 60)
+    
+    xlsx_output_file = script_dir / "out-2" / "document_topics.xlsx"
+    doc_topics_df = export_document_topics(topic_model, df, topics, topic_freq, output_file=str(xlsx_output_file))
+    
     print(f"\nAnalysis complete!")
     print(f"Found {len(topic_freq)} topics")
     print(f"Visualization saved to {output_file}")
+    print(f"Document topics saved to {xlsx_output_file}")
     
-    return topic_model, topics, probs, df, topic_freq
+    return topic_model, topics, df, topic_freq, doc_topics_df
 
 
 if __name__ == "__main__":
-    topic_model, topics, probs, df, topic_freq = main()
+    topic_model, topics, df, topic_freq, doc_topics_df = main()
