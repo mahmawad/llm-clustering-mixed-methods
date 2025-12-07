@@ -1,49 +1,93 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/development/cicd/templates/
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+# LLM Clustering Mixed Methods CI/CD Pipeline
+# Tests the topic modeling implementation with proper timeouts and validation
 
-stages:          # List of stages for jobs, and their order of execution
-  - build
+stages:
+  - setup
   - test
-  - deploy
+  - analyze
 
-build-job:       # This job runs in the build stage, which runs first.
-  stage: build
-  script:
-    - echo "Compiling the code..."
-    - echo "Compile complete."
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-unit-test-job:   # This job runs in the test stage.
-  stage: test    # It only starts when the job in the build stage completes successfully.
-  script:
-    - echo "Running unit tests... This will take about 60 seconds."
-    - sleep 60
-    - echo "Code coverage is 90%"
+cache:
+  paths:
+    - .cache/pip
+    - .venv/
 
-lint-test-job:   # This job also runs in the test stage.
-  stage: test    # It can run at the same time as unit-test-job (in parallel).
-  script:
-    - echo "Linting code... This will take about 10 seconds."
-    - sleep 10
-    - echo "No lint issues found."
+before_script:
+  - echo "Setting up Python environment..."
+  - python3 -m venv .venv || true
+  - source .venv/bin/activate
+  - pip install --upgrade pip setuptools wheel
+  - echo "Installing dependencies..."
+  - pip install -r requirements.txt
 
-deploy-job:      # This job runs in the deploy stage.
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  environment: production
+# Stage 1: Setup and validate environment
+setup-job:
+  stage: setup
   script:
-    - echo "Deploying application..."
-    - echo "Application successfully deployed."
+    - echo "✓ Python environment ready"
+    - python3 --version
+    - pip list | grep -E "pandas|bertopic|sentence-transformers|umap-learn|openai"
+    - echo "✓ All required packages installed"
+  timeout: 10 minutes
+
+# Stage 2: Code quality and syntax checks
+lint-test-job:
+  stage: test
+  script:
+    - echo "Checking Python syntax..."
+    - python3 -m py_compile csv_utils.py
+    - python3 -m py_compile topic_modeling.py
+    - python3 -m py_compile main.py
+    - echo "✓ No syntax errors found"
+  timeout: 5 minutes
+
+# Stage 2: Validate data and imports
+import-test-job:
+  stage: test
+  script:
+    - echo "Testing module imports..."
+    - python3 -c "import pandas; print('✓ pandas imported')"
+    - python3 -c "import csv_utils; print('✓ csv_utils imported')"
+    - python3 -c "import topic_modeling; print('✓ topic_modeling imported')"
+    - echo "✓ All imports successful"
+  timeout: 10 minutes
+
+# Stage 3: Run full analysis pipeline
+analyze-job:
+  stage: analyze
+  script:
+    - echo "=========================================="
+    - echo "Starting LLM Clustering Analysis Pipeline"
+    - echo "=========================================="
+    - python3 main.py
+    - echo ""
+    - echo "Validating output files..."
+    - |
+      if [ -f "out-2/documents_visualization.html" ]; then
+        echo "✓ HTML visualization created"
+        wc -l out-2/documents_visualization.html
+      else
+        echo "✗ ERROR: HTML visualization not created"
+        exit 1
+      fi
+    - |
+      if [ -f "out-2/document_topics.xlsx" ]; then
+        echo "✓ Excel export created"
+        ls -lh out-2/document_topics.xlsx
+      else
+        echo "✗ ERROR: Excel export not created"
+        exit 1
+      fi
+    - echo ""
+    - echo "=========================================="
+    - echo "✓ Analysis pipeline completed successfully"
+    - echo "=========================================="
+  timeout: 2 hours
+  artifacts:
+    paths:
+      - out-2/documents_visualization.html
+      - out-2/document_topics.xlsx
+    expire_in: 30 days
+  allow_failure: false
