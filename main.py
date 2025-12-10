@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
+
 from csv_utils import analyze_csv, remove_duplicates
-from topic_modeling import get_topic_modeling, get_final_tm, visualize_topics, export_document_topics
+from helper import classify_documents
 
 
 def main():
@@ -22,49 +22,41 @@ def main():
     if dup_info['duplicate_rows'] > 0:
         df = remove_duplicates(df, columns=[text_column])
     
-    print(f"\nProcessing {len(df)} documents for topic modeling...\n")
+    print(f"\nProcessing {len(df)} documents for classification...\n")
     
-    # Train topic model
+    # Classify documents using predefined categories
     print("=" * 60)
-    print("TRAINING TOPIC MODEL")
+    print("CLASSIFYING DOCUMENTS")
     print("=" * 60)
     
-    cluster_nr = 4
-    topic_model, topics, probs, embeddings = get_topic_modeling(df, cluster_nr)
+    output_dir = script_dir / "out-2"
+    output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Refine topic model and get final results
+    classified_df = classify_documents(
+        df,
+        text_column=text_column,
+        output_file=str(output_dir / "classified_documents.xlsx"),
+    )
+    
+    # Create a summary report
     print("\n" + "=" * 60)
-    print("REFINING TOPIC MODEL")
+    print("CLASSIFICATION SUMMARY")
     print("=" * 60)
     
-    topic_freq = get_final_tm(topic_model, topics, probs, df)
+    category_summary = classified_df['Category'].value_counts().reset_index()
+    category_summary.columns = ['Category', 'Count']
+    category_summary.to_excel(str(output_dir / "category_summary.xlsx"), index=False, sheet_name='Summary')
     
-    # Visualize topics and documents
-    print("\n" + "=" * 60)
-    print("VISUALIZING RESULTS")
-    print("=" * 60)
-    
-    docs = df[text_column].tolist()
-    output_file = script_dir / "out-2" / "documents_visualization.html"
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    
-    fig = visualize_topics(topic_model, docs, reduced_embeddings=None, output_file=str(output_file))
-    
-    # Export document topics to Excel
-    print("\n" + "=" * 60)
-    print("EXPORTING RESULTS")
-    print("=" * 60)
-    
-    xlsx_output_file = script_dir / "out-2" / "document_topics.xlsx"
-    doc_topics_df = export_document_topics(topic_model, df, topics, topic_freq, output_file=str(xlsx_output_file))
+    print("\nCategory Distribution:")
+    print(category_summary.to_string(index=False))
     
     print(f"\nAnalysis complete!")
-    print(f"Found {len(topic_freq)} topics")
-    print(f"Visualization saved to {output_file}")
-    print(f"Document topics saved to {xlsx_output_file}")
+    print(f"Classified {len(classified_df)} documents")
+    print(f"Unique categories: {classified_df['Category'].nunique()}")
+    print(f"Results saved to {output_dir}")
     
-    return topic_model, topics, df, topic_freq, doc_topics_df
+    return classified_df, category_summary, df
 
 
 if __name__ == "__main__":
-    topic_model, topics, df, topic_freq, doc_topics_df = main()
+    classified_df, category_summary, df = main()
