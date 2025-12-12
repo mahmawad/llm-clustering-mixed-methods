@@ -1,10 +1,13 @@
 from pathlib import Path
+import numpy as np
 
 from csv_utils import analyze_csv, remove_duplicates
-from helper import classify_documents
+from helper import classify_prompt, detect_language
 
 
 def main():
+
+    
     # Load and analyze CSV data
     print("=" * 60)
     print("LOADING AND ANALYZING DATA")
@@ -32,12 +35,16 @@ def main():
     output_dir = script_dir / "out-2"
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    classified_df = classify_documents(
-        df,
-        text_column=text_column,
-        output_file=str(output_dir / "classified_documents.xlsx"),
+    classified_df = df.copy()
+    classified_df["Category"] = (
+        classified_df[text_column].fillna("").apply(classify_prompt)
     )
     
+    # Detect language using fasttext with pandas apply
+    print("Detecting languages...")
+    classified_df["detected_language"] = classified_df[text_column].apply(detect_language)
+    output_file=str(output_dir / "classified_documents.xlsx")
+    classified_df.to_excel(output_file, index=False, sheet_name="Classifications")
     # Create a summary report
     print("\n" + "=" * 60)
     print("CLASSIFICATION SUMMARY")

@@ -1,11 +1,11 @@
 """Utility helpers for classifying prompts into predefined categories."""
 
 from pathlib import Path
-from typing import List, Optional
-
-import pandas as pd
+from typing import Optional
 from openai import OpenAI
 import toml
+import fasttext 
+model = fasttext.load_model("lid.176.ftz")
 
 # Load API key from config
 config_path = Path(__file__).parent / "config" / "config.toml"
@@ -45,9 +45,6 @@ from the following list:
 
 You are given a single topic consisting of multiple user queries.
 
-Topic keywords:
-[KEYWORDS]
-
 Representative user queries:
 [DOCUMENTS]
 
@@ -65,50 +62,34 @@ Important:
 client = OpenAI(api_key=api_key)
 
 
-def classify_documents(
-    df: pd.DataFrame,
-    *,
-    text_column: str = "Prompt",
-    model: str = "gpt-3.5-turbo",
-    output_file: Optional[str] = None,
-) -> pd.DataFrame:
-    """Inject each document into the classification prompt and store responses."""
+def classify_prompt(doc: Optional[str], model: str = "gpt-3.5-turbo") -> str:
+    """Classify a single prompt and return the action code."""
+    text = (doc or "").strip()
+    if not text:
+        return "OTHER"
 
-    if text_column not in df.columns:
-        raise ValueError(f"Column '{text_column}' not found in dataframe")
-
-    result_df = df.copy()
-    categories: List[str] = []
-
-    for prompt in result_df[text_column].fillna(""):
-        doc = str(prompt).strip()
-        if not doc:
-            categories.append("OTHER")
-            continue
-
-        tokens = [token.strip(" ,.;:!?") for token in doc.split() if token.strip()]
-        keyword_block = ", ".join(tokens[:5]) or "General Query"
-        doc_block = f"- {doc}"
-        filled_prompt = classification_prompt.replace("[KEYWORDS]", keyword_block)
-        filled_prompt = filled_prompt.replace("[DOCUMENTS]", doc_block)
-
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                max_tokens=10,
-                temperature=0,
-                messages=[{"role": "user", "content": filled_prompt}],
-            )
-            categories.append(response.choices[0].message.content.strip())
-        except Exception as exc:  # pragma: no cover - network dependency
-            print(f"Error classifying prompt: {exc}")
-            categories.append("ERROR")
-
-    result_df["Category"] = categories
-
-    if output_file:
-        output_path = Path(output_file)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        result_df.to_excel(output_path, index=False, sheet_name="Classifications")
-
-    return result_df
+    filled_prompt = classification_prompt.replace("[DOCUMENTS]", f"- {text}")
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=10,
+            temperature=0,
+            messages=[{"role": "user", "content": filled_prompt}],
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as exc:  # pragma: no cover - network dependency
+        print(f"Error classifying prompt: {exc}")
+        return "ERROR"
+import fasttext
+def detect_language(text):
+    """Detect language using fasttext model."""
+    if not isinstance(text, str) or not text.strip():
+        return "unknown"
+    try:
+        pred = model.predict(text.replace('\n', ' '))
+        lang = pred[0][0].replace('__label__', '')
+        confidence = pred[1][0]
+        return lang
+    except Exception as e:
+        print(f"Error detecting language: {e}")
+        return "error"
