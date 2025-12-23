@@ -43,7 +43,7 @@ def main():
     # Detect language using fasttext with pandas apply
     print("Detecting languages...")
     classified_df["detected_language"] = classified_df[text_column].apply(detect_language)
-    output_file=str(output_dir / "classified_documents.xlsx")
+    output_file=str(output_dir / "o4_mini_classified_documents.xlsx")
     classified_df.to_excel(output_file, index=False, sheet_name="Classifications")
     # Create a summary report
     print("\n" + "=" * 60)
@@ -52,7 +52,7 @@ def main():
     
     category_summary = classified_df['Category'].value_counts().reset_index()
     category_summary.columns = ['Category', 'Count']
-    category_summary.to_excel(str(output_dir / "category_summary.xlsx"), index=False, sheet_name='Summary')
+    category_summary.to_excel(str(output_dir / "o4_mini_category_summary.xlsx"), index=False, sheet_name='Summary')
     
     print("\nCategory Distribution:")
     print(category_summary.to_string(index=False))

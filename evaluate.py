@@ -100,8 +100,8 @@ def main():
     
     # File paths
     ground_truth_file = script_dir / "out-2" / "2prompts_v2KI-gpt4omini.csv"
-    predictions_file = script_dir / "out-2" / "classified_documents.xlsx"
-    output_plot = script_dir / "out-2" / "confusion_matrix.png"
+    predictions_file = script_dir / "out-2" / "o4_mini_classified_documents.xlsx"
+    output_plot = script_dir / "out-2" / "o4_mini_confusion_matrix.png"
     
     print("=" * 70)
     print("CONFUSION MATRIX EVALUATION")
@@ -136,8 +136,8 @@ def main():
         
         # Save confusion matrix as CSV
         cm_df = pd.DataFrame(cm, index=categories, columns=categories)
-        cm_df.to_csv(script_dir / "out-2" / "confusion_matrix.csv")
-        print(f"✓ Confusion matrix CSV saved to: {script_dir / 'out-2' / 'confusion_matrix.csv'}")
+        cm_df.to_csv(script_dir / "out-2" / "o4_mini_confusion_matrix.csv")
+        print(f"✓ Confusion matrix CSV saved to: {script_dir / 'out-2' / 'o4_mini_confusion_matrix.csv'}")
 
 
 if __name__ == "__main__":

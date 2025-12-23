@@ -105,7 +105,7 @@ Important:
 client = OpenAI(api_key=api_key)
 
 
-def classify_prompt(doc: Optional[str], model: str = "gpt-3.5-turbo") -> str:
+def classify_prompt(doc: Optional[str], model: str = "gpt-4o-mini") -> str:
     """Classify a single prompt and return the action code."""
     text = (doc or "").strip()
     if not text:
@@ -115,8 +115,8 @@ def classify_prompt(doc: Optional[str], model: str = "gpt-3.5-turbo") -> str:
     try:
         response = client.chat.completions.create(
             model=model,
-            max_tokens=10,
             temperature=0,
+            max_tokens=10,
             messages=[{"role": "user", "content": filled_prompt}],
         )
         return response.choices[0].message.content.strip()

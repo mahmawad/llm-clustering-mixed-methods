@@ -22,6 +22,7 @@ api_key = config["api"]["openai_api_key"]
 
 # Create the OpenAI API client
 client = OpenAIClient(api_key=api_key)
+model_name = config["api"].get("openai_model", "gpt-4o-mini")
 
 
 def get_topic_modeling(df, cluster_nr):
@@ -48,7 +49,7 @@ def get_topic_modeling(df, cluster_nr):
     cluster_model = KMeans(random_state=42, n_clusters=cluster_nr)
     
     # Initialize text generation model with OpenAI
-    representation_model = OpenAI(client, model="gpt-3.5-turbo", delay_in_seconds=5)
+    representation_model = OpenAI(client, model=model_name, delay_in_seconds=5)
     
     # Initialize and train BERTopic model
     topic_model = BERTopic(
