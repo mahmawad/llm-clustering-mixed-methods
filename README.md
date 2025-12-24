@@ -184,8 +184,6 @@ openai_api_key = "your-api-key-here"
 
 ### Running the Pipeline
 
-#### Option 1: Interactive Mode (Default)
-
 ```bash
 python main.py
 ```
@@ -198,25 +196,6 @@ The system will:
 4. Ask which classification categories to include (or use all by default)
 5. Classify all documents in the selected files
 6. Generate Excel outputs with results
-
-#### Option 2: Command-Line Arguments
-
-```bash
-python main.py --data-files data-2/1prompts_v2.csv data-3/other_data.csv
-```
-
-**Available Arguments:**
-
-- `--data-files FILE [FILE ...]`: Specify input CSV files (relative or absolute paths)
-- `--text-column COLUMN`: Column name containing text to classify (default: `content`)
-- `--delimiter DELIMITER`: CSV delimiter character (default: `,`)
-- `--max-samples N`: Limit processing to first N samples (useful for testing)
-
-**Example:**
-
-```bash
-python main.py -f data-2/1prompts_v2.csv --text-column Prompt --max-samples 50
-```
 
 ### Output Files
 
@@ -257,123 +236,6 @@ python analyze_errors.py
 - `scikit-learn` - Confusion matrices and evaluation metrics
 - `openpyxl` - Excel file generation and manipulation
 - `toml` - Configuration file parsing
-
-## 📖 API Reference
-
-### csv_utils.py
-
-#### `csv_to_df(file_path, delimiter=';', encoding='utf-8')`
-
-Loads a CSV file with automatic encoding detection.
-
-- **Parameters**:
-  - `file_path`: Path to CSV file
-  - `delimiter`: Field separator (default: semicolon)
-  - `encoding`: Preferred encoding (tries multiple if fails)
-- **Returns**: pandas DataFrame
-
-#### `check_duplicates(df, columns=None)`
-
-Identifies duplicate rows in the dataset.
-
-- **Parameters**:
-  - `df`: Input DataFrame
-  - `columns`: Specific columns to check (None = all columns)
-- **Returns**: Dictionary with duplicate statistics
-
-#### `remove_duplicates(df, columns=None, keep='first')`
-
-Removes duplicate rows from DataFrame.
-
-- **Parameters**:
-  - `df`: Input DataFrame
-  - `columns`: Columns to consider for deduplication
-  - `keep`: Which duplicate to keep ('first', 'last', False)
-- **Returns**: Deduplicated DataFrame
-
-#### `load_and_prepare_csv(csv_file, text_column, delimiter=',')`
-
-Complete CSV loading and preparation pipeline.
-
-- **Parameters**:
-  - `csv_file`: Path to CSV file
-  - `text_column`: Column name for classification
-  - `delimiter`: Field separator
-- **Returns**: Clean, deduplicated DataFrame
-
-#### `discover_csv_files(script_dir)`
-
-Finds all CSV files in `data-*` subdirectories.
-
-- **Parameters**:
-  - `script_dir`: Project root directory
-- **Returns**: List of CSV file paths
-
-#### `prompt_user_for_files(candidates, script_dir)`
-
-Interactive menu for file selection.
-
-- **Parameters**:
-  - `candidates`: List of available CSV files
-  - `script_dir`: Project root for display paths
-- **Returns**: List of selected file paths
-
-### llm_helper.py
-
-#### `detect_language(text)`
-
-Detects language of input text using FastText model.
-
-- **Parameters**:
-  - `text`: Input text string
-- **Returns**: Language code (e.g., 'en', 'de', 'fr')
-
-#### `get_active_category_codes()`
-
-Returns currently active classification categories (cached).
-
-- **Parameters**: None
-- **Returns**: List of category codes (e.g., ['D.I', 'D.G', 'S.S', ...])
-
-#### `build_category_section(selected_codes)`
-
-Formats category definitions for LLM prompt.
-
-- **Parameters**:
-  - `selected_codes`: List of category codes to include
-- **Returns**: Formatted string with category descriptions
-
-#### `classify_prompt(doc, model='gpt-4o-mini')`
-
-Classifies a single document into a predefined category.
-
-- **Parameters**:
-  - `doc`: Text to classify
-  - `model`: OpenAI model name (default: gpt-4o-mini)
-- **Returns**: Category code (e.g., 'S.S', 'E.RV', 'OTHER')
-- **Error Handling**: Returns "ERROR" if classification fails
-
-#### `get_selected_category_codes()`
-
-Returns copy of cached category selection.
-
-- **Parameters**: None
-- **Returns**: List of selected category codes
-
-#### Category Constants
-
-**CATEGORY_METADATA**: Dictionary with category definitions
-
-- Each entry contains: `title`, `description`
-- Used for prompt generation and user menu
-
-**CATEGORY_GROUPS**: Hierarchical grouping of categories
-
-- Defining: D.I, D.G
-- Seeking: S.S, S.SL, S.EQ
-- Engaging: E.RV, E.O, E.RF, E.RH
-- Reflecting: R.ET, R.ES
-- Other: OTHER
 
 ### main.py
 
@@ -442,32 +304,7 @@ In Mixed-Methods studies, large volumes of open-ended text responses are frequen
 ⚠️ **Validation Required**: Predictions should be validated against human judgment  
 ⚠️ **Model Dependent**: Quality depends on selected LLM and category definitions  
 ⚠️ **Nuance Loss**: May oversimplify complex or ambiguous responses  
-⚠️ **Category Design**: Requires careful category definition and prompt engineering  
-⚠️ **Cost**: API-based classification has per-token costs
-
-## 📖 Technical Details
-
-### Classification Strategy
-
-The system uses a **prompt-based classification approach**:
-
-1. **Category Selection**: User selects which categories to include (or uses all)
-2. **Prompt Building**: Only selected categories are included in the LLM prompt
-3. **Single Document**: Each document is classified independently
-4. **Deterministic**: Temperature=0 ensures consistent results
-5. **Error Handling**: Failed classifications return "ERROR" for later review
-
-### Language Detection Integration
-
-- **Automatic Detection**: Languages detected for all classified documents
-- **Output**: Language codes stored alongside classifications
-- **Use Case**: Enables downstream language-specific analysis or filtering
-
-### Data Quality
-
-- **Deduplication**: Removes redundant rows before classification (saves API costs)
-- **Encoding Handling**: Automatically detects and handles multiple character encodings
-- **Delimiter Flexibility**: Handles various CSV formats (comma, semicolon, tab, pipe)
+⚠️ **Category Design**: Requires careful category definition and prompt engineering
 
 ## 📄 License & Attribution
 
@@ -478,20 +315,4 @@ The system uses a **prompt-based classification approach**:
 - **scikit-learn**: BSD License
 - **pandas**: BSD License
 
-### Citation
-
-If you use this project in academic work, please cite:
-
-```bibtex
-@software{llm_classification_2025,
-  title={LLM Text Classification for Mixed-Methods Research},
-  author={Your Name},
-  year={2025},
-  url={https://github.com/yourusername/llm-classification}
-}
-```
-
----
-
-**Last Updated**: December 2025  
-**Status**: Active Development
+**Last Updated**: December 2025
