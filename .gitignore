@@ -24,3 +24,6 @@ __pycache__/
 .Python
 dist/
 build/
+*.xlsx
+*.csv
+
