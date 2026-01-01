@@ -1,4 +1,26 @@
+# Configuration & sensitive files
 config/config.toml
+_.txt
+
+# Jupyter notebooks
 *.ipynb
+
+# Language model files
 *.ftz
-*.txt
+
+# Data directories
+data-1/
+data-2/
+data-3/
+out-2/
+out-3/
+
+# Python
+__pycache__/
+.venv/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+dist/
+build/
